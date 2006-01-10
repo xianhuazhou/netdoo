@@ -52,7 +52,7 @@ var Player = (function(){
 
 		openFromLocal: function() {
 			var file = air.File.documentsDirectory;
-			var filter = new air.FileFilter('Music', '*.mp3; *.MP3');
+			var filter = new air.FileFilter('Music', '*.mp3; *.MP3; *.wma; *.WMA');
 			file.browseForOpenMultiple('Open', new window.runtime.Array(filter));
 			var self = this;
 			file.addEventListener(air.FileListEvent.SELECT_MULTIPLE, function(e){
@@ -538,7 +538,7 @@ var Player = (function(){
 			var _song = song = null, self = this;
 
 			$A(e.dataTransfer.getData('application/x-vnd.adobe.air.file-list')).each(function(file){
-				if (/\.(mp3)$/i.test(file.url)) {
+				if (/\.(mp3|wma)$/i.test(file.url)) {
 					_song = Util.addFile(file);
 					if (!song) {
 						song = _song;

@@ -10,7 +10,7 @@
 		by xianhua.zhou@gmail.com
 	</copyright>
 	<initialWindow> 
-		<content>Player.html</content> 
+		<content>netdoo.html</content> 
 		<visible>true</visible> 
 		<width>600</width> 
 		<height>370</height> 

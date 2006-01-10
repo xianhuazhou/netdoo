@@ -5,12 +5,28 @@
 	padding: 0;
 }
 
+body {
+	background: #aafbb2;
+}
+
 a {
 	color: blue;
 }
 a:hover {
 	color: red;
 	text-decoration: none;
+}
+
+input[type="button"] {
+	color: green;
+	border: 1px dotted lightblue;
+	padding: 1px;
+	margin: 0;
+	background: #f4fdf7;
+	cursor: pointer;
+}
+input[type="button"]:hover {
+	background: #d0f8dc;
 }
 
 #songs ul {
@@ -138,11 +154,11 @@ a:hover {
 	padding: 2px;
 }
 
-#copyrights {
+#footer {
 	clear: both;
 	padding: 0;
 	margin: 2px;
-	text-align: center;
+	text-align: right;
 	color: gray;
 }
 

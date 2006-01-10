@@ -1,0 +1,54 @@
+<html>
+	<head>
+		<title>NetDoo Player V1.0 dev</title>
+		<script type="text/javascript" src="javascripts/AIRAliases.js"></script> 
+		<script type="text/javascript" src="javascripts/AIRIntrospector.js"></script> 
+		<script type="text/javascript" src="javascripts/protoaculous.js"></script> 
+		<script type="text/javascript" src="javascripts/app.js"></script> 
+		<link rel='stylesheet' type='text/css' href='stylesheets/app.css'/>
+	</head>
+	<body>
+
+		<table cellspacing="1" cellpadding="0" id="soundBytes"></table>
+		<div id="search">
+			Search: <input type="text" id="song" onkeypress="if(event.keyCode == 13) $('btn').onclick()" />
+			<input type="button" onclick="Player.search($F('song'))" id="btn" value="Go" />
+			<span id="debug"></span>
+		</div>
+
+		<div id="main">
+
+			<div id="songs"></div>
+
+			<div id="player">
+
+				<div id="panel">
+					<div id="controller">
+						<span><a href="#" id="songLoop" onclick="$(this).toggleClassName('ACT');return false" >R</a></span>
+						<input type="button" id="openFile" onclick="Player.Util.openFromLocal()" value="Open File" />
+					</div>
+	
+					<div id="playbackSlide">
+						<div id="playbackSlideHandle"><img src="images/playback.png" /></div>
+					</div>
+
+					<div id="volumeSlide">
+						<div id="volumeSlideHandle"><img src="images/playback.png" /></div>
+					</div>
+					<div id="volumeSlideFill"></div>
+
+					<div id="downloadedHandle"></div>
+					<div id="soundBuffering">Buffering...</div>
+
+				</div>
+
+				<div id="lists"></div>
+
+			</div>
+		</div>
+
+		<div id="footer">
+			<div id="songName"></div>
+		</div>
+	</body>
+</html>

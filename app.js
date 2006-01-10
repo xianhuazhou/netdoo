@@ -27,7 +27,7 @@ var Player = (function(){
 					 "<li>" + song.name + "</li>" +
 					 "<li>" + song.singer + "</li>" +
 					 "<li>" + song.album + "</li>" +
-					 "<li><a href=\"#\" songIndex=\"" + index + "\"><img src=\"" + Player.Util.images.play + "\"></a></li>" +
+					 "<li><a href=\"#\" songIndex=\"" + index + "\"><img src=\"" + Player.Util.images.resume + "\"></a></li>" +
 					 "</ul>"
 				 );
 			});
@@ -39,10 +39,21 @@ var Player = (function(){
 			});
 		},
 
+		addFile: function(file) {
+			var song = {
+				name: file.nativePath.split('/').last().split('.')[0],
+				singer: '',
+				musicUrl: file.url
+			};
+			this.addToPlayLists(song);
+			return song;
+		},
+
 		openFromLocal: function() {
 			var file = air.File.documentsDirectory;
-			var filter = new air.FileFilter('Music', '*.wma; *.WMA; *.mp3; *.MP3; *.wav; *.WAV');
+			var filter = new air.FileFilter('Music', '*.mp3; *.MP3');
 			file.browseForOpenMultiple('Open', new window.runtime.Array(filter));
+			var self = this;
 			file.addEventListener(air.FileListEvent.SELECT_MULTIPLE, function(e){
 				var files = $A(e.files);
 				if (files.size() < 1) {
@@ -51,15 +62,10 @@ var Player = (function(){
 
 				var _song = song = null;
 				files.each(function(file){
-					_song = {
-						name: file.nativePath.split('/').last().split('.')[0],
-						singer: '',
-						musicUrl: 'file:///' + file.nativePath
-					};
+					_song = self.addFile(file);
 					if (!song) {
 						song = _song;
 					}
-					Util.addToPlayLists(_song);
 				});
 
 				setTimeout(function(){Music.start(song.musicUrl, song.name)}, 100);
@@ -77,7 +83,7 @@ var Player = (function(){
 				"<ul>" +
 				"<li>" + song.name + "</li>" +
 				"<li>" + song.singer + "</li>" +
-				"<li><a href=\"" + song.musicUrl + "\"><img src=\"" + Player.Util.images.play + "\"></a></li>" +
+				"<li><a href=\"" + song.musicUrl + "\"><img src=\"" + Player.Util.images.resume + "\"></a></li>" +
 				"</ul>"
 			);
 			var link = lists.childElements().last().down('a');
@@ -279,30 +285,44 @@ var Player = (function(){
 			this.channel.soundTransform = self.transform;
 			this.resetSoundCompleteEvent();
 
+			var playbackPercent = 0, bytes = new air.ByteArray();
+
 			// update the status of playback silder
 			this.timer = setInterval(function(){
 				if (self.snd.bytesLoaded < self.snd.bytesTotal) {
 					self.soundLength = Math.ceil(self.snd.length / (self.snd.bytesLoaded / self.snd.bytesTotal));
-					var playbackPercent = Math.ceil(100 * (self.channel.position / self.soundLength));
+					playbackPercent = Math.ceil(100 * (self.channel.position / self.soundLength));
 				} else {
 					self.soundLength = self.snd.length;
-					var playbackPercent = Math.ceil(100 * (self.channel.position / self.soundLength));
+					playbackPercent = Math.ceil(100 * (self.channel.position / self.soundLength));
 				}
 				if (self.playbackStatus) {
 					self.playbackSlider.setValue(self.position === 0 ? 1 : playbackPercent - 1);
 				}
 				$('soundBuffering').setStyle({display: self.snd.isBuffering ? 'inline' : 'none'});
+
+				// drawing
+				var n = 0;
+				air.SoundMixer.computeSpectrum(bytes, true, 0);
+				for (var i = 0; i < 128; i++) {
+					bytes.position = i * 8;
+					n = bytes.readFloat();
+					height = n * 30;
+					if (height > 30) height = 30;
+					$('soundBytes_' + i).setStyle({height: height + 'px'});
+				}
 			}, 100);
 
 			// highlight the playing song
+			var currentSong;
 			$('lists').childElements().each(function(it){
-				player = it.childElements().last().down('a');
-				if (player.href == self.url) {
+				currentSong = it.childElements().last().down('a');
+				if (currentSong.href == self.url) {
 					it.addClassName('ACT');
-					player.hide();
+					currentSong.hide();
 				} else {
 					it.removeClassName('ACT');
-					player.show();
+					currentSong.show();
 				}
 			});
 		},
@@ -360,7 +380,7 @@ var Player = (function(){
 			this.channel.addEventListener(air.Event.SOUND_COMPLETE, function(e){
 				$('resumePause').src = Util.images.resume;
 				$('stopPlay').src = Util.images.play;
-				if ($F('songLoop')) {
+				if ($('songLoop').hasClassName('ACT')) {
 					self.close(false);
 					self.play(0);
 				} else {
@@ -492,6 +512,36 @@ var Player = (function(){
 		$('resumePause').observe('click', function(){Music.pauseOrResume()});
 		$('stopPlay').observe('click', function(){Music.stopOrPlay()});
 		$('volume').observe('click', function(){Util.clickVolume()});
+
+		// soundBytes
+		var soundBytes = ["<tbody><tr>"];
+		for (var i = 0; i < 128; i++) {
+			soundBytes.push("<td valign=\"bottom\"><div id=\"soundBytes_" + i + "\"></div></td>");
+		}
+		soundBytes.push("</tr></tbody>");
+		$('soundBytes').update(soundBytes.join(''));
+
+		// dragDrop supported
+		$(document.body).observe('dragenter', function(e){
+			e.preventDefault();
+		}).observe('dragover', function(e){
+			e.preventDefault();
+		}).observe('drop', function(e){
+			var _song = song = null, self = this;
+
+			$A(e.dataTransfer.getData('application/x-vnd.adobe.air.file-list')).each(function(file){
+				if (/\.(mp3)$/i.test(file.url)) {
+					_song = Util.addFile(file);
+					if (!song) {
+						song = _song;
+					}
+				}
+			});
+
+			if (song) {
+			  setTimeout(function(){Music.start(song.musicUrl, song.name)}, 100);
+		  }
+		});
 	}
 
 	return {

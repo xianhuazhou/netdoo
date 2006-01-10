@@ -24,34 +24,34 @@ a:hover {
 }
 
 #search {
-	width: 100%;
 	padding: 5px;
+	height: 25px;
 	background: #aafbb2;
 	border-bottom: 1px solid #b6cbe0;
 }
 
 #main {
 	width: 100%;
-	height: 450px;
+	height: 280px;
 	background: #c2fbc7;
 }
 
 #songs {
 	float: left;
-	width: 400px;
-	height: 450px;
+	width: 300px;
+	height: 280px;
 	background: #e5ebff;
+	overflow: auto;
 }
 
 #player {
-	margin-left: 410px;
+	margin-left: 310px;
 	background: #efefef;
-	height: 450px;
+	height: 280px;
 }
 
 #panel {
 	padding: 5px;
-	width: 100%;
 	background: white;
 }
 
@@ -121,6 +121,8 @@ a:hover {
 
 #lists {
 	width: 98%;
+	height: 254px;
+	overflow: auto;
 }
 
 #lists ul {
@@ -138,7 +140,40 @@ a:hover {
 
 #copyrights {
 	clear: both;
-	margin: 10px;
+	padding: 0;
+	margin: 2px;
 	text-align: center;
 	color: gray;
+}
+
+#soundBytes {
+	position: absolute;
+	left: 310px;
+	top: 0;
+	height: 35px;
+}
+
+#soundBytes tbody tr td div {
+	width: 1px;
+	height: 0;
+	background: green;
+}
+
+#openFile {
+	position: relative;
+	top: -3px;
+}
+
+#songLoop {
+	position: relative;
+	top: -3px;
+	text-decoration: none;
+	font-size: 12px;
+	background: white;
+	color: gray;
+	border: 1px solid gray;
+}
+#songLoop.ACT {
+	color: green;
+	border: 1px solid green;
 }

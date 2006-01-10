@@ -6,7 +6,9 @@
 	<initialWindow> 
 		<content>Player.html</content> 
 		<visible>true</visible> 
-		<width>800</width> 
-		<height>600</height> 
+		<width>600</width> 
+		<height>370</height> 
+		<maximizable>false</maximizable>
+		<resizable>false</resizable>
 	</initialWindow> 
 </application>

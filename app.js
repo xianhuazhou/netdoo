@@ -1,3 +1,5 @@
+// NetDoo Player V1.0 dev
+
 var Player = (function(){
 
 	var Logger = {
@@ -37,6 +39,33 @@ var Player = (function(){
 			});
 		},
 
+		openFromLocal: function() {
+			var file = air.File.documentsDirectory;
+			var filter = new air.FileFilter('Music', '*.wma; *.WMA; *.mp3; *.MP3; *.wav; *.WAV');
+			file.browseForOpenMultiple('Open', new window.runtime.Array(filter));
+			file.addEventListener(air.FileListEvent.SELECT_MULTIPLE, function(e){
+				var files = $A(e.files);
+				if (files.size() < 1) {
+					return;
+				}
+
+				var _song = song = null;
+				files.each(function(file){
+					_song = {
+						name: file.nativePath.split('/').last().split('.')[0],
+						singer: '',
+						musicUrl: 'file:///' + file.nativePath
+					};
+					if (!song) {
+						song = _song;
+					}
+					Util.addToPlayLists(_song);
+				});
+
+				setTimeout(function(){Music.start(song.musicUrl, song.name)}, 100);
+			});
+		},
+
 		addToPlayLists: function(song) {
 			var lists = $('lists');
 			if (lists.childElements().any(function(it){
@@ -56,6 +85,27 @@ var Player = (function(){
 			link.observe('click', function(){
 				Music.start(this.href, $(this.parentNode.parentNode).childElements()[0].innerHTML);
 			});
+		},
+
+		playNext: function() {
+			air.trace('Play next');
+			var lists = $('lists').childElements();
+			var i = 0, length = lists.length, list = null;
+			if (length == 1) {
+				return;
+			}
+			for (; i < length; i++) {
+				list = lists[i];
+				if (list.hasClassName('ACT')) {
+					if (i < length - 1) {
+						list = lists[i + 1];
+					} else {
+						list = lists[0];
+					}
+					Music.start(list.down('a').href, list.select('li')[0].innerHTML);
+					break;
+				}
+			}
 		},
 
 		getPlaybackSlider: function() {
@@ -308,11 +358,13 @@ var Player = (function(){
 			var self = this;
 			// play finished
 			this.channel.addEventListener(air.Event.SOUND_COMPLETE, function(e){
-				$('resumePause').src = Util.images.pause;
+				$('resumePause').src = Util.images.resume;
 				$('stopPlay').src = Util.images.play;
 				if ($F('songLoop')) {
 					self.close(false);
 					self.play(0);
+				} else {
+					Util.playNext();
 				}
 			});
 		}

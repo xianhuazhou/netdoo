@@ -1,6 +1,6 @@
 <html>
 	<head>
-		<title>Player</title>
+		<title>NetDoo Player V1.0 dev</title>
 		<script type="text/javascript" src="AIRAliases.js"></script> 
 		<script type="text/javascript" src="AIRIntrospector.js"></script> 
 		<script type="text/javascript" src="protoaculous.js"></script> 
@@ -12,13 +12,13 @@
 		<div id="search">
 			Search: <input type="text" id="song" onkeypress="if(event.keyCode == 13) $('btn').onclick()" />
 			<input type="button" onclick="Player.search($F('song'))" id="btn" value="Go" />
+			<input type="button" onclick="Player.Util.openFromLocal()" value="Open from local" />
 			<span id="debug"></span>
 		</div>
 
 		<div id="main">
 
-			<div id="songs">
-			</div>
+			<div id="songs"></div>
 
 			<div id="player">
 
@@ -27,7 +27,7 @@
 
 
 						<span id="songName"></span>
-						<span><label for="songLoop">Loop</label><input type="checkbox" id="songLoop" value="1" /></span>
+						<span><input type="checkbox" id="songLoop" value="1" title="loop for the current playing song" /></span>
 					</div>
 	
 					<div id="playbackSlide">

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<application xmlns="http://ns.adobe.com/air/application/1.5"> 
+	<id>examples.html.Zhou</id> 
+	<version>0.1</version> 
+	<filename>Main</filename> 
+	<initialWindow> 
+		<content>Player.html</content> 
+		<visible>true</visible> 
+		<width>800</width> 
+		<height>600</height> 
+	</initialWindow> 
+</application>

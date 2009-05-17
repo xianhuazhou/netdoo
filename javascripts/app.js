@@ -42,7 +42,7 @@ var Player = (function(){
 
 		addFile: function(file) {
 			var song = {
-				name: file.nativePath.split('/').last().split('.')[0],
+				name: file.nativePath.split(/[\/\\]/).last().split('.')[0],
 				singer: '',
 				musicUrl: file.url
 			};
@@ -295,18 +295,30 @@ var Player = (function(){
 
 			var playbackPercent = 0, bytes = new air.ByteArray();
 
-			// update the status of playback silder
+			// update the status of the current music
 			this.timer = setInterval(function(){
 				if (self.snd.bytesLoaded < self.snd.bytesTotal) {
 					self.soundLength = Math.ceil(self.snd.length / (self.snd.bytesLoaded / self.snd.bytesTotal));
-					playbackPercent = Math.ceil(100 * (self.channel.position / self.soundLength));
 				} else {
 					self.soundLength = self.snd.length;
-					playbackPercent = Math.ceil(100 * (self.channel.position / self.soundLength));
 				}
+				playbackPercent = Math.ceil(100 * (self.channel.position / self.soundLength));
+
+				// time infos
+				var timeTotal = Math.round(self.soundLength / 1000);
+				var timePlayed = Math.round(self.channel.position / 1000);
+				var timeTotalSeconds = timeTotal % 60, timeTotalMinutes = (timeTotal / 60).toFixed(0),
+				    timePlayedSeconds = timePlayed % 60, timePlayedMinutes = (timePlayed / 60).toFixed(0);
+				if (timePlayedMinutes < 9) timePlayedMinutes = '0' + timePlayedMinutes;
+				if (timePlayedSeconds < 9) timePlayedSeconds = '0' + timePlayedSeconds;
+				if (timeTotalMinutes < 9) timeTotalMinutes = '0' + timeTotalMinutes;
+				if (timeTotalSeconds < 9) timeTotalSeconds = '0' + timeTotalSeconds;
+				$('timePlayed').update(timePlayedMinutes + ':' + timePlayedSeconds);
+				$('timeTotal').update('/' + timeTotalMinutes + ':' + timeTotalSeconds);
 				if (self.playbackStatus) {
 					self.playbackSlider.setValue(self.position === 0 ? 1 : playbackPercent - 1);
 				}
+
 				$('soundBuffering').setStyle({display: self.snd.isBuffering ? 'inline' : 'none'});
 
 				// drawing
@@ -437,7 +449,7 @@ var Player = (function(){
 		getSongs: function(data) {
 			var songs = [], items = data.split('freemusic_song_result');
 			items.each(function(it){
-				if (!it.include('Download BottomBorder')) {
+				if (!it.include('Icon BottomBorder')) {
 					return;
 				}
 				var song = {};
@@ -450,7 +462,7 @@ var Player = (function(){
 				it.scan(/<td\sclass="Album\sBottomBorder">(.+?)<\/a>/i, function(match){
 					song.album = match[1].stripTags();
 				});
-				it.scan(/<td\sclass="Download\sBottomBorder">(.+?),/im, function(match){
+				it.scan(/<td\sclass="Icon\sBottomBorder">(.+?),/im, function(match){
 					match[1].scan(/\/music\/url\?q\\x3d(.+)&quot;/i, function(m){
 						song.url = unescape(m[1]).gsub(/\\x26/, '&').gsub(/\\x3d/, '=');
 					});

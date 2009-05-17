@@ -25,7 +25,7 @@
 				<div id="panel">
 					<div id="controller">
 						<span><a href="#" id="songLoop" onclick="$(this).toggleClassName('ACT');return false" >R</a></span>
-						<input type="button" id="openFile" onclick="Player.Util.openFromLocal()" value="Open File" />
+						<input type="button" id="openFile" onclick="Player.Util.openFromLocal()" value="Open File(s)" />
 					</div>
 	
 					<div id="playbackSlide">
@@ -48,7 +48,11 @@
 		</div>
 
 		<div id="footer">
-			<div id="songName"></div>
+			<div id="songInfo">
+				<span id="songName"></span>
+				<span id="timePlayed"></span>
+				<span id="timeTotal"></span>
+			</div>
 		</div>
 	</body>
 </html>

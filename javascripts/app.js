@@ -2,12 +2,6 @@
 
 var Player = (function(){
 
-	var Logger = {
-		info: function(message) {
-			$('debug').update(message);
-		}
-	};
-
 	var Util = {
 		songs: [],
 		images: {
@@ -27,7 +21,7 @@ var Player = (function(){
 					 "<ul>" +
 					 "<li>" + song.name + "</li>" +
 					 "<li>" + song.singer + "</li>" +
-					 "<li>" + song.album + "</li>" +
+					 "<li>" + song.album.truncate() + "</li>" +
 					 "<li class=\"right\"><a href=\"#\" songIndex=\"" + index + "\"><img src=\"" + Player.Util.images.resume + "\"></a></li>" +
 					 "</ul>"
 				 );
@@ -417,16 +411,20 @@ var Player = (function(){
 		},
 	});
 
+	// Google
 	var SearchGoogle = Class.create(Search, {
 		url: 'http://www.google.cn/music/search',
 
-		search: function() {
+		search: function(start) {
 			var self = this;
+			start = start || 0;
 			air.trace('Start to search: ' + self.key);
 			new Ajax.Request(self.url, {
 				parameters: {
 					q: self.key,
-					aq: 'f'
+					cat: 'song',
+					aq: 'f',
+					start: start
 				},
 				method: 'get',
 				onLoading: function() {
@@ -442,6 +440,28 @@ var Player = (function(){
 						return alert('Can not find anything!');
 					}
 					Util.updateSongsList(songs, self);
+
+					// paginations
+					var nums = [], paginations = [];
+					res.responseText.scan(/start%3D(.+?)&amp;/, function(match) {
+						nums.push(parseInt(match[1]));
+					});
+					nums = nums.uniq().sort(function(a, b){return a - b});
+					var currentNum = nums.first(), lastNum = nums.last();
+					if (start > 0) {
+							paginations.push("<a href=\"javascript:void(0)\" start=\"0\" class=\"page\">First</a>");
+							paginations.push("<a href=\"javascript:void(0)\" start=\"" + (parseInt(start) - 20) + "\" class=\"page\">Prev</a>");
+					}
+					if (start < nums.last()) {
+							paginations.push("<a href=\"javascript:void(0)\" start=\"" + (parseInt(start) + 20) + "\" class=\"page\">Next</a>");
+							paginations.push("<a href=\"javascript:void(0)\" start=\"" + (parseInt(nums.last()) - 20) + "\" class=\"page\">Last</a>");
+					}
+					$('songs').insert('<div class="paginations">' + paginations.join('&nbsp;') + '</div>');
+					$('songs').select('a.page').each(function(it){
+						it.observe('click', function(){
+							new SearchGoogle(self.key).search(this.readAttribute('start'));
+						});
+					});
 				}
 			});
 		},
@@ -488,7 +508,6 @@ var Player = (function(){
 				onComplete: function(res) {
 					res.responseText.scan(/url\?q=(.+?)"/, function(match){
 						var url = "http://www.google.cn/music/top100/url?q=" + match[1].gsub('&amp;', '&');
-						var song = Util.songs[songIndex];
 						song.musicUrl = url;
 						Util.addToPlayLists(song);
 						Music.start(url, song.name);
@@ -498,8 +517,103 @@ var Player = (function(){
 		}
 	});
 
+	// Sogou
+	var SearchSogou = Class.create(Search, {
+		url: 'http://mp3.sogou.com/music.so',
+
+		search: function(page) {
+			var self = this;
+			page = parseInt(page || 1);
+			air.trace('Start to search: ' + self.key);
+
+			new Ajax.Request(self.url + '?page=' + page + '&pf=mp3&query=' + escape(self.key), {
+				method: 'get',
+				onComplete: function(res) {
+					air.trace("Complete");
+					var data = res.responseText;
+					var songs = self.getSongs(data);
+					air.trace("Finished, found " + songs.size() + " songs");
+					if (songs.size() < 1) {
+						return alert('Can not find anything!');
+					}
+					Util.updateSongsList(songs, self);
+
+
+					// paginations
+					var nums = [], paginations = [];
+					res.responseText.scan(/page=([0-9]+)>/, function(match) {
+						nums.push(parseInt(match[1]));
+					});
+					nums = nums.uniq().sort(function(a, b){return a - b});
+					if (page > 1) {
+							paginations.push("<a href=\"javascript:void(0)\" start=\"0\" class=\"page\">First</a>");
+							paginations.push("<a href=\"javascript:void(0)\" start=\"" + (page - 1) + "\" class=\"page\">Prev</a>");
+					}
+					if (page < nums.last()) {
+							paginations.push("<a href=\"javascript:void(0)\" start=\"" + (page + 1) + "\" class=\"page\">Next</a>");
+					}
+					$('songs').insert('<div class="paginations">' + paginations.join('&nbsp;') + '</div>');
+					$('songs').select('a.page').each(function(it){
+						it.observe('click', function(){
+							new SearchSogou(self.key).search(this.readAttribute('start'));
+						});
+					});
+				}
+			});
+		},
+
+		getSongs: function(data) {
+			var songs = [], items = data.split('<td style="FONT-SIZE: 12px" noWrap');
+			items.each(function(item){
+				if (!item.include('o2(')) {
+					return;
+				}
+				var song = {};
+				song.name = item.split('<span class=nav04>')[0].split('"listen">')[1].strip();
+				song.singer = item.split('<td class=nav04><a showSinger=t')[1].split('target=_blank>')[1].split('</a>')[0].stripTags();
+				song.album = item.split('<td class=nav04><a href="http://mp3.sogou.com')[1].split('target=_blank>')[1].split('</a>')[0];
+				song.url = "http://ting.mbox.sogou.com/listenV2.jsp?" + item.split("o2('")[1].split("'")[0];
+				air.trace(song.name + " - " + song.singer + ' - ' + song.album + ' - ' + song.url);
+
+				songs.push(song);
+			});
+
+			return songs;
+		},
+
+		parseAndPlay: function(songIndex) {
+			var song = Util.songs[songIndex];
+			if (!song) {
+				air.trace("Error: can not found the song to play");
+			}
+			if (!Object.isUndefined(song.musicUrl)) {
+				Music.start(song.musicUrl, song.name);
+				return;
+			}
+
+			new Ajax.Request(song.url, {
+				method: 'get',
+				onComplete: function(res) {
+					var url = unescape('http' + res.responseText.split('","http')[1].split('"')[0]);
+					song.musicUrl = url;
+					Util.addToPlayLists(song);
+					Music.start(url, song.name);
+				}
+			});
+		}
+	});
+
 	function search(key) {
-		var searchEngine = new SearchGoogle(key);
+		var searchEngine = null;
+		switch ($F('web')) {
+			case '1':
+			  searchEngine = new SearchGoogle(key);
+   			break;
+			case '2':
+			  searchEngine = new SearchSogou(key);
+   			break;
+		}
+		if (!searchEngine) return alert('Invalid action!');
 		try {
 			searchEngine.search();
 		} catch (e) {
@@ -548,7 +662,6 @@ var Player = (function(){
 			e.preventDefault();
 		}).observe('drop', function(e){
 			var _song = song = null, self = this;
-
 			$A(e.dataTransfer.getData('application/x-vnd.adobe.air.file-list')).each(function(file){
 				if (/\.(mp3|wma)$/i.test(file.url)) {
 					_song = Util.addFile(file);
@@ -574,3 +687,12 @@ var Player = (function(){
 })();
 
 document.observe('dom:loaded',  Player.init);
+
+Ajax.Responders.register({
+	onLoading: function() {
+		new Effect.Appear('debug');
+	},
+	onComplete: function() {
+		new Effect.Fade('debug');
+	}
+});

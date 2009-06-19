@@ -13,7 +13,11 @@
 		<div id="search">
 			Search: <input type="text" id="song" onkeypress="if(event.keyCode == 13) $('btn').onclick()" />
 			<input type="button" onclick="Player.search($F('song'))" id="btn" value="Go" />
-			<span id="debug"></span>
+			<select size="1" id="web">
+				<option value="1">Web1</option>
+				<option value="2">Web2</option>
+			</select>
+			<span id="debug" style="display:none">Loading...</span>
 		</div>
 
 		<div id="main">

@@ -31,6 +31,10 @@ input[type="button"]:hover {
 	background: #d0f8dc;
 }
 
+#song {
+	width: 120px;
+}
+
 #songs ul {
 	margin: 2px;
 	padding: 1px;
@@ -201,4 +205,18 @@ input[type="button"]:hover {
 	background: green;
 	color: white;
 	border: 1px solid green;
+}
+
+.paginations {
+	text-align: center;
+	position: absolute;
+	z-index: 1;
+	left: 180px;
+	top: 320px;
+	background: #d0f8dc;
+}
+
+#debug {
+	color: red;
+	background: yellow;
 }

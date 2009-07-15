@@ -571,7 +571,7 @@ var Player = (function(){
 				var song = {};
 				song.name = item.split('<span class=nav04>')[0].split('"listen">')[1].strip();
 				song.singer = item.split('<td class=nav04><a showSinger=t')[1].split('target=_blank>')[1].split('</a>')[0].stripTags();
-				song.album = item.split('<td class=nav04><a href="http://mp3.sogou.com')[1].split('target=_blank>')[1].split('</a>')[0];
+				song.album = item.split('<td class=nav04><a href="http://music.sogou.com')[1].split('target=_blank>')[1].split('</a>')[0];
 				song.url = "http://ting.mbox.sogou.com/listenV2.jsp?" + item.split("o2('")[1].split("'")[0];
 				air.trace(song.name + " - " + song.singer + ' - ' + song.album + ' - ' + song.url);
 
